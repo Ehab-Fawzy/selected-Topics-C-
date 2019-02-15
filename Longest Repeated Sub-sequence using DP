@@ -1,0 +1,88 @@
+#include <iostream>
+#include <string.h>
+#include <algorithm>
+
+typedef long long ll;
+using namespace std;
+
+const int MAX = 1e4+9;
+string Sequence; ll Length_of_Sequence;
+ll Memoization[MAX][MAX];
+ll dynamicArray[MAX][MAX];
+
+/// Time    Complexity O( First_Pointer * Second_Pointer )
+/// Memory  Complexity O( Length_of_Sequence ^ 2 )
+ll Longest_Repeated_SubSequence( ll First_Pointer , ll Second_Pointer )
+{
+    if ( First_Pointer == Length_of_Sequence || Second_Pointer == Length_of_Sequence ) return 0;
+
+    ll &Reference = Memoization[ First_Pointer ][ Second_Pointer ];
+
+    if ( Reference != -1 ) return Reference;
+    if ( Sequence[ First_Pointer ] == Sequence[ Second_Pointer ] && First_Pointer != Second_Pointer )
+        return Reference = Longest_Repeated_SubSequence( First_Pointer+1 , Second_Pointer+1 ) + 1;
+
+    ll First__Children = Longest_Repeated_SubSequence( First_Pointer+1 , Second_Pointer );
+    ll Second_Children = Longest_Repeated_SubSequence( First_Pointer , Second_Pointer+1 );
+    return Reference = max( First__Children , Second_Children );
+}
+
+/// Time    Complexity O( First_Pointer * Second_Pointer )
+/// Memory  Complexity O( 1 )
+string Create_The_Longest_Repeated_SubSequence( ll First_Pointer , ll Second_Pointer )
+{
+    if ( First_Pointer == 0 || Second_Pointer == 0 ) return "";
+
+    if ( Sequence[ First_Pointer-1 ] == Sequence[ Second_Pointer-1 ] && First_Pointer != Second_Pointer )
+        return Create_The_Longest_Repeated_SubSequence( First_Pointer-1 , Second_Pointer-1 ) + Sequence[ First_Pointer-1 ];
+    else
+    {
+        if ( dynamicArray[ First_Pointer-1 ][ Second_Pointer ] >= dynamicArray[ First_Pointer ][ Second_Pointer-1 ] )
+            return Create_The_Longest_Repeated_SubSequence( First_Pointer-1 , Second_Pointer );
+        else
+            return Create_The_Longest_Repeated_SubSequence( First_Pointer , Second_Pointer-1 );
+    }
+}
+
+int main()
+{
+    //cin >> Sequence;
+    Sequence = "ATACTCGGA";
+    Length_of_Sequence = Sequence.length();
+
+    /// Memoization Technique   -----------------------------------------------
+    memset( Memoization , -1 , sizeof Memoization );
+    ll LRS_length_Memo = Longest_Repeated_SubSequence(0,0);
+
+    cout << "Length of LRS using Memoization : " << LRS_length_Memo << "\n";
+
+    /// -----------------------------------------------------------------------
+    /// Bottom Up Technique
+    /// Time    Complexity O( First_Pointer * Second_Pointer )
+    /// Memory  Complexity O( Length_of_Sequence ^ 2 )
+
+    for ( int i = 0; i <= Length_of_Sequence; i++ )         /// memset First Row&&Col
+        dynamicArray[i][0] = 0 , dynamicArray[0][i] = 0;
+
+    for ( int i = 1; i <= Length_of_Sequence; i++ )
+    {
+        for ( int j = 1; j <= Length_of_Sequence; j++ )
+        {
+            if ( Sequence[ i-1 ] == Sequence[ j-1 ] && i != j )
+            {
+                dynamicArray[i][j] = dynamicArray[i-1][j-1] + 1;
+            }
+            else
+            {
+                dynamicArray[i][j] = max( dynamicArray[i-1][j] , dynamicArray[i][j-1] );
+            }
+        }
+    }
+
+    ll LRS_length_Bottom_Up = dynamicArray[ Length_of_Sequence ][ Length_of_Sequence ];
+    cout << "Length of LRS using Bottom - Up : " << LRS_length_Bottom_Up << "\n";
+
+    string LRS_Sequence = Create_The_Longest_Repeated_SubSequence( Length_of_Sequence , Length_of_Sequence );
+    cout << "The Longest Repeated SubSequence is : " << LRS_Sequence << "\n";
+    return 0;
+}
